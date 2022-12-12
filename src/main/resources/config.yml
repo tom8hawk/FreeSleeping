@@ -1,0 +1,37 @@
+percent: 50
+
+includeMiners: false
+groundLevel: 64
+
+alerts:
+  MORNING:
+    ACTIONBAR:
+      enabled: true
+      text: 'Ночь пропущена! %missed'
+
+    CHAT:
+      enabled: false
+      text: 'Ночь пропущена! %missed'
+
+  SLEEP:
+    ACTIONBAR:
+      enabled: true
+      text: '&e%player &fлег в кровать!'
+
+    CHAT:
+      enabled: false
+      text: '&e%player &fлег в кровать!'
+
+  WAKE:
+    ACTIONBAR:
+      enabled: true
+      text: '&e%player &fВстал с кровати!'
+
+    CHAT:
+      enabled: false
+      text: '&e%player &fВстал с кровати!'
+
+messages:
+  no-rights: 'У вас нет прав чтобы сделать это!'
+  reload-command: '&eПерезапуск плагина: &f/fs reload'
+  successfully-reload: 'Успешно перезагружен!'

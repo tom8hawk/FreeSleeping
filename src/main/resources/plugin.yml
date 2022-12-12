@@ -1,0 +1,9 @@
+name: FreeSleeping
+version: '${project.version}'
+main: ru.baronessdev.personal.freesleeping.FreeSleeping
+
+commands:
+  freesleeping:
+    usage: /freesleeping
+  fs:
+    usage: /fs
