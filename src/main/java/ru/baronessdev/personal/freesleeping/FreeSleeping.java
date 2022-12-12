@@ -14,20 +14,19 @@ import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public final class FreeSleeping extends JavaPlugin {
     public static FreeSleeping inst;
-
     private final List<Player> sleepPlayers = new ArrayList<>();
-    private float totalPercent;
 
     public FreeSleeping() {
         inst = this;
     }
-    
+
+    @Override
     public void onEnable() {
         Config.init();
 
@@ -35,8 +34,14 @@ public final class FreeSleeping extends JavaPlugin {
 
             @EventHandler
             public void onBedEnter(PlayerBedEnterEvent event) {
-                if (nightNow())
-                    doSleep(event.getPlayer());
+                if (nightNow()) {
+                    Player player = event.getPlayer();
+
+                    sleepPlayers.add(player);
+                    printTexts(TextType.SLEEP, player);
+
+                    skipNight();
+                }
             }
 
             @EventHandler
@@ -47,7 +52,7 @@ public final class FreeSleeping extends JavaPlugin {
                     sleepPlayers.remove(player);
 
                     if (nightNow())
-                        printTexts(TextType.WAKE, Map.of("%player", player.getDisplayName()));
+                        printTexts(TextType.WAKE, player);
                 }
             }
 
@@ -59,7 +64,7 @@ public final class FreeSleeping extends JavaPlugin {
                     sleepPlayers.remove(player);
 
                     if (nightNow()) {
-                        printTexts(TextType.WAKE, Map.of("%player", player.getDisplayName()));
+                        printTexts(TextType.WAKE, player);
                         skipNight();
                     }
                 }
@@ -85,27 +90,15 @@ public final class FreeSleeping extends JavaPlugin {
         getCommand("fs").setExecutor(executor);
     }
 
-    public void onDisable() {
-
-    }
-
     private boolean nightNow() {
         return Bukkit.getWorld("world").getTime() >= 12000L;
     }
 
-    private void doSleep(Player player) {
-        sleepPlayers.add(player);
-        printTexts(TextType.SLEEP, Map.of("%player", player.getDisplayName()));
-
-        skipNight();
-    }
-
     private void skipNight() {
-        String missed = calculateSleeping();
+        int sleeping = sleepPlayers.size();
+        int needed = calculateNeeded();
 
-        if (totalPercent >= (float) Config.getDouble("percent")) {
-            sleepPlayers.clear();
-
+        if (sleeping >= needed) {
             World world = Bukkit.getWorld("world");
             world.setTime(1000L);
 
@@ -115,18 +108,13 @@ public final class FreeSleeping extends JavaPlugin {
                 world.setThundering(false);
             }
 
-            printTexts(TextType.MORNING, Map.of("%missed", missed));
+            printTexts(TextType.MORNING, null);
+            sleepPlayers.clear();
         }
     }
 
-    private String calculateSleeping() {
-        int totalSleeping = sleepPlayers.size();
-        int totalPlayers = getTotalPlayers();
-
-        totalPercent = (float) totalSleeping / (float) totalPlayers * 100.0F;
-        totalPercent = Math.round(totalPercent * 100.0F) / 100.0F;
-
-        return totalSleeping + "/" + totalPlayers + " (" + totalPercent + "%)";
+    private int calculateNeeded() {
+        return Math.round(getTotalPlayers() / 100f * (float) Config.getDouble("percent"));
     }
 
     private int getTotalPlayers() {
@@ -146,17 +134,21 @@ public final class FreeSleeping extends JavaPlugin {
         return (Config.getBoolean("includeMiners")) ? totalPlayers : (totalPlayers - miningPlayers);
     }
 
-    private void printTexts(TextType type, Map<String, String> replacements) {
+    private void printTexts(TextType type, @Nullable Player player) {
         String typePath = "alerts." + type + ".";
+
+        String sleeping = String.valueOf(sleepPlayers.size());
+        String needed = String.valueOf(calculateNeeded());
 
         for (TextPosition position : TextPosition.values()) {
             String positionPath = typePath + position;
 
             if (Config.getBoolean(positionPath + ".enabled")) {
-                String message = Config.getMessage(positionPath + ".text");
+                String message = Config.getMessage(positionPath + ".text")
+                        .replace("%sleeping", sleeping).replace("%needed", needed);
 
-                for (Map.Entry<String, String> data : replacements.entrySet())
-                    message = message.replace(data.getKey(), data.getValue());
+                if (player != null)
+                    message = message.replace("%player", player.getDisplayName());
 
                 position.broadcastMessage(message);
             }

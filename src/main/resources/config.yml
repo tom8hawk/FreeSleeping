@@ -7,29 +7,29 @@ alerts:
   MORNING:
     ACTIONBAR:
       enabled: true
-      text: 'Ночь пропущена! %missed'
+      text: 'Ночь пропущена! (%sleeping/%needed)'
 
     CHAT:
       enabled: false
-      text: 'Ночь пропущена! %missed'
+      text: 'Ночь пропущена! (%sleeping/%needed)'
 
   SLEEP:
     ACTIONBAR:
       enabled: true
-      text: '&e%player &fлег в кровать!'
+      text: '&e%player &fлег в кровать! (%sleeping/%needed)'
 
     CHAT:
       enabled: false
-      text: '&e%player &fлег в кровать!'
+      text: '&e%player &fлег в кровать! (%sleeping/%needed)'
 
   WAKE:
     ACTIONBAR:
       enabled: true
-      text: '&e%player &fВстал с кровати!'
+      text: '&e%player &fВстал с кровати! (%sleeping/%needed)'
 
     CHAT:
       enabled: false
-      text: '&e%player &fВстал с кровати!'
+      text: '&e%player &fВстал с кровати! (%sleeping/%needed)'
 
 messages:
   no-rights: 'У вас нет прав чтобы сделать это!'
