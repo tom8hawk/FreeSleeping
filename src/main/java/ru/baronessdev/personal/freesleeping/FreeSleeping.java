@@ -91,7 +91,7 @@ public final class FreeSleeping extends JavaPlugin {
     }
 
     private boolean nightNow() {
-        return Bukkit.getWorld("world").getTime() >= 12000L;
+        return Bukkit.getWorlds().get(0).getTime() >= 12000L;
     }
 
     private void skipNight() {
@@ -99,7 +99,7 @@ public final class FreeSleeping extends JavaPlugin {
         int needed = calculateNeeded();
 
         if (sleeping >= needed) {
-            World world = Bukkit.getWorld("world");
+            World world = Bukkit.getWorlds().get(0);
             world.setTime(1000L);
 
             if (world.hasStorm()) {
