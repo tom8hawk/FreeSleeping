@@ -15,12 +15,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public final class FreeSleeping extends JavaPlugin {
     public static FreeSleeping inst;
-    private final List<Player> sleepPlayers = new ArrayList<>();
+    private final Set<UUID> sleepPlayers = new HashSet<>();
 
     public FreeSleeping() {
         inst = this;
@@ -33,11 +34,11 @@ public final class FreeSleeping extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new Listener() {
 
             @EventHandler
-            public void onBedEnter(PlayerBedEnterEvent event) {
-                if (nightNow()) {
-                    Player player = event.getPlayer();
+            public void onBedEnter(PlayerBedEnterEvent e) {
+                if (!e.isCancelled() && nightNow()) {
+                    Player player = e.getPlayer();
 
-                    sleepPlayers.add(player);
+                    sleepPlayers.add(player.getUniqueId());
                     printTexts(TextType.SLEEP, player);
 
                     skipNight();
@@ -45,23 +46,27 @@ public final class FreeSleeping extends JavaPlugin {
             }
 
             @EventHandler
-            public void onBedLeave(PlayerBedLeaveEvent event) {
-                Player player = event.getPlayer();
+            public void onBedLeave(PlayerBedLeaveEvent e) {
+                if (!e.isCancelled()) {
+                    Player player = e.getPlayer();
+                    UUID uuid = player.getUniqueId();
 
-                if (sleepPlayers.contains(player)) {
-                    sleepPlayers.remove(player);
+                    if (sleepPlayers.contains(uuid)) {
+                        sleepPlayers.remove(uuid);
 
-                    if (nightNow())
-                        printTexts(TextType.WAKE, player);
+                        if (nightNow())
+                            printTexts(TextType.WAKE, player);
+                    }
                 }
             }
 
             @EventHandler
-            public void onPlayerQuit(PlayerQuitEvent event) {
-                Player player = event.getPlayer();
+            public void onPlayerQuit(PlayerQuitEvent e) {
+                Player player = e.getPlayer();
+                UUID uuid = player.getUniqueId();
 
-                if (sleepPlayers.contains(player)) {
-                    sleepPlayers.remove(player);
+                if (sleepPlayers.contains(uuid)) {
+                    sleepPlayers.remove(uuid);
 
                     if (nightNow()) {
                         printTexts(TextType.WAKE, player);
