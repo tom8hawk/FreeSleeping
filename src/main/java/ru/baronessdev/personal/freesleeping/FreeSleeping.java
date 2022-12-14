@@ -105,7 +105,7 @@ public final class FreeSleeping extends JavaPlugin {
 
         if (sleeping >= needed) {
             World world = Bukkit.getWorlds().get(0);
-            world.setTime(1000L);
+            world.setTime(23450L);
 
             if (world.hasStorm()) {
                 world.setWeatherDuration(0);
