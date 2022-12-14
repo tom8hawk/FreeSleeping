@@ -1,13 +1,10 @@
 package ru.baronessdev.personal.freesleeping;
 
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static ru.baronessdev.personal.freesleeping.FreeSleeping.inst;
 
@@ -33,12 +30,12 @@ public final class Config {
     }
 
     public static String getMessage(String path) {
-        return translateColors(configuration.getString(path));
-    }
+        String line = configuration.getString(path);
 
-    public static List<String> getStringList(String path) {
-        return configuration.getStringList(path).stream()
-                .map(Config::translateColors).collect(Collectors.toList());
+        if (line != null)
+            return ChatColor.translateAlternateColorCodes('&', line);
+
+        return "";
     }
 
     public static int getInt(String path) {
@@ -51,16 +48,5 @@ public final class Config {
 
     public static boolean getBoolean(String path) {
         return configuration.getBoolean(path);
-    }
-
-    public static ConfigurationSection getSection(String path) {
-        return configuration.getConfigurationSection(path);
-    }
-
-    private static String translateColors(String line) {
-        if (line != null)
-            return ChatColor.translateAlternateColorCodes('&', line);
-
-        return "";
     }
 }

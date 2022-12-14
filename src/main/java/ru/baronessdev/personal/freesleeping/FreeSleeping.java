@@ -21,6 +21,8 @@ import java.util.UUID;
 
 public final class FreeSleeping extends JavaPlugin {
     public static FreeSleeping inst;
+
+    private World world;
     private final Set<UUID> sleepPlayers = new HashSet<>();
 
     public FreeSleeping() {
@@ -30,6 +32,7 @@ public final class FreeSleeping extends JavaPlugin {
     @Override
     public void onEnable() {
         Config.init();
+        world = Bukkit.getWorlds().get(0);
 
         Bukkit.getPluginManager().registerEvents(new Listener() {
 
@@ -39,7 +42,7 @@ public final class FreeSleeping extends JavaPlugin {
                     Player player = e.getPlayer();
 
                     sleepPlayers.add(player.getUniqueId());
-                    printTexts(TextType.SLEEP, player);
+                    printAlert(AlertTime.SLEEP, player);
 
                     skipNight();
                 }
@@ -55,7 +58,7 @@ public final class FreeSleeping extends JavaPlugin {
                         sleepPlayers.remove(uuid);
 
                         if (nightNow())
-                            printTexts(TextType.WAKE, player);
+                            printAlert(AlertTime.WAKE, player);
                     }
                 }
             }
@@ -69,7 +72,7 @@ public final class FreeSleeping extends JavaPlugin {
                     sleepPlayers.remove(uuid);
 
                     if (nightNow()) {
-                        printTexts(TextType.WAKE, player);
+                        printAlert(AlertTime.WAKE, player);
                         skipNight();
                     }
                 }
@@ -96,7 +99,7 @@ public final class FreeSleeping extends JavaPlugin {
     }
 
     private boolean nightNow() {
-        return Bukkit.getWorlds().get(0).getTime() >= 12000L;
+        return world.getTime() >= 12000L;
     }
 
     private void skipNight() {
@@ -104,7 +107,6 @@ public final class FreeSleeping extends JavaPlugin {
         int needed = calculateNeeded();
 
         if (sleeping >= needed) {
-            World world = Bukkit.getWorlds().get(0);
             world.setTime(23450L);
 
             if (world.hasStorm()) {
@@ -113,13 +115,13 @@ public final class FreeSleeping extends JavaPlugin {
                 world.setThundering(false);
             }
 
-            printTexts(TextType.MORNING, null);
+            printAlert(AlertTime.MORNING, null);
             sleepPlayers.clear();
         }
     }
 
     private int calculateNeeded() {
-        int players = getTotalPlayers();
+        int players = calculateTotalPlayers();
 
         if (players > 0)
             return Math.round(players / 100f * (float) Config.getDouble("percent"));
@@ -127,31 +129,30 @@ public final class FreeSleeping extends JavaPlugin {
         return 1;
     }
 
-    private int getTotalPlayers() {
+    private int calculateTotalPlayers() {
         int totalPlayers = 0;
         int miningPlayers = 0;
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (player.getWorld().getEnvironment().equals(World.Environment.NORMAL)) {
-                
+                totalPlayers++;
+
                 if (player.getLocation().getY() < Config.getInt("groundLevel"))
                     miningPlayers++;
-                
-                totalPlayers++;
             }
         }
         
         return (Config.getBoolean("includeMiners")) ? totalPlayers : (totalPlayers - miningPlayers);
     }
 
-    private void printTexts(TextType type, @Nullable Player player) {
-        String typePath = "alerts." + type + ".";
+    private void printAlert(AlertTime alert, @Nullable Player player) {
+        String typePath = "alerts." + alert + ".";
 
         String sleeping = String.valueOf(sleepPlayers.size());
         String needed = String.valueOf(calculateNeeded());
 
-        for (TextPosition position : TextPosition.values()) {
-            String positionPath = typePath + position;
+        for (Output output : Output.values()) {
+            String positionPath = typePath + output;
 
             if (Config.getBoolean(positionPath + ".enabled")) {
                 String message = Config.getMessage(positionPath + ".text")
@@ -160,24 +161,24 @@ public final class FreeSleeping extends JavaPlugin {
                 if (player != null)
                     message = message.replace("%player", player.getDisplayName());
 
-                position.broadcastMessage(message);
+                output.broadcastMessage(message);
             }
         }
     }
 
-    private enum TextType {
+    private enum AlertTime {
         MORNING, SLEEP, WAKE
     }
 
-    private enum TextPosition {
+    private enum Output {
         ACTIONBAR {
             @Override
             public void broadcastMessage(String message) {
                 BaseComponent text = new ComponentBuilder(message).create()[0];
 
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    Bukkit.getScheduler().runTaskLater(inst, ()
-                            -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR, text), 5L);
+                    Bukkit.getScheduler().runTaskLater(inst,
+                            () -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR, text), 5L);
                 }
             }
         },
