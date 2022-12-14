@@ -119,7 +119,12 @@ public final class FreeSleeping extends JavaPlugin {
     }
 
     private int calculateNeeded() {
-        return Math.round(getTotalPlayers() / 100f * (float) Config.getDouble("percent"));
+        int players = getTotalPlayers();
+
+        if (players > 0)
+            return Math.round(players / 100f * (float) Config.getDouble("percent"));
+
+        return 1;
     }
 
     private int getTotalPlayers() {
