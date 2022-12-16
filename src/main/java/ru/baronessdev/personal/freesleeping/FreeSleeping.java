@@ -107,7 +107,7 @@ public final class FreeSleeping extends JavaPlugin {
         int needed = calculateNeeded();
 
         if (sleeping >= needed) {
-            world.setTime(23450L);
+            world.setTime(Config.getLong("setTime"));
 
             if (world.hasStorm()) {
                 world.setWeatherDuration(0);

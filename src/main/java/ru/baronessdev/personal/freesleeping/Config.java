@@ -46,6 +46,10 @@ public final class Config {
         return configuration.getDouble(path);
     }
 
+    public static long getLong(String path) {
+        return configuration.getLong(path);
+    }
+
     public static boolean getBoolean(String path) {
         return configuration.getBoolean(path);
     }
